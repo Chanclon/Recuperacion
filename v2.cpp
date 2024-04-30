@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <cstdlib>
 #include <string>
@@ -8,7 +8,7 @@ using namespace std;
 int const LONG_CARRETERA = 10; //la modificaras a tu gusto, distancoa --> 0 hasta (Lng.crrtra -1)
 int const MAX_PASOS = 3; // siempre sera positivo, en modo depuracion no habrá limit
 int const TIEMPO_PARADO = 2; // tiempo que está parado un coche tras un pinchazo
-bool const DEBUG = 1; // 0 --> normal, 1 --> depuración
+bool const DEBUG = 0; // 0 --> normal, 1 --> depuración
 
 
 //dibujos
@@ -23,8 +23,8 @@ const char CHAR_CLAVO = 193; // ┴
 const char CHAR_SORPRESA = 63; // ?
 const char CHAR_NORMAL = 32; // ‘ ‘
 
-typedef enum  { NORMAL, CLAVO, SORPRESA }tTipoPosicion;
-typedef tTipoPosicion  tCarretera[LONG_CARRETERA]; //tCarretera podra tener 0(normal), 1(clavo), 2(sorpresa)
+typedef enum { NORMAL, CLAVO, SORPRESA, COCHE }tTipoPosicion;
+typedef tTipoPosicion  tCarretera[LONG_CARRETERA]; //tCarretera podra tener 0(normal), 1(clavo), 2(sorpresa), 3(coche)
 
 bool cargaCarretera(tCarretera carretera);
 tTipoPosicion stringToEnum(string s);
@@ -42,7 +42,7 @@ void avanzaCarril(const tCarretera carretera, int& posCoche, int& tiempoParado);
 
 bool cargaCarretera(tCarretera carretera)
 {
-	bool abierto =  false;
+	bool abierto = false;
 	ifstream archivo;
 	string nombre;
 	cout << "Introduzca nombre archivo ";
@@ -50,6 +50,21 @@ bool cargaCarretera(tCarretera carretera)
 	archivo.open(nombre);
 	if (archivo.is_open()) //no se que es lo que leerá exactamente
 	{
+		string tipo = "";
+		int cantidad;
+		int n;
+		while (tipo != "XX")
+		{
+			archivo >> tipo;
+			tTipoPosicion posicion = stringToEnum(tipo);
+			archivo >> cantidad;
+			for (int i = 0; i < cantidad; i++)
+			{
+				archivo >> n;
+				carretera[n] = posicion;
+			}
+		}
+		archivo.close();
 		abierto = true;
 	}
 
@@ -74,14 +89,14 @@ void iniciaCarril(tCarretera carretera) { // pone todas las posiciones de la car
 void dibujaLineaHorizontalSuperior() /* dibuja la línea superior de la carretera, teniendo en cuenta la longitud de la misma. ╔══════════╗*/
 {
 	cout << CHAR_ESQUINA_SUPERIOR_IZQUIERDA;
-	for (int i = 2; i < LONG_CARRETERA; i++) cout << CHAR_LINEA_HORIZONTAL;
+	for (int i = 0; i < LONG_CARRETERA; i++) cout << CHAR_LINEA_HORIZONTAL;
 	cout << CHAR_ESQUINA_SUPERIOR_DERECHA << endl;
 }
 
 
-void dibujaLineaHorizontalInferior(){ /*dibuja la línea inferior de la carretera, teniendo en cuenta la longitud de la misma. ╚══════════╝*/
+void dibujaLineaHorizontalInferior() { /*dibuja la línea inferior de la carretera, teniendo en cuenta la longitud de la misma. ╚══════════╝*/
 	cout << CHAR_ESQUINA_INFERIOR_IZQUIERDA;
-	for (int i = 2; i < LONG_CARRETERA ; i++) cout << CHAR_LINEA_HORIZONTAL;
+	for (int i = 0; i < LONG_CARRETERA; i++) cout << CHAR_LINEA_HORIZONTAL;
 	cout << CHAR_ESQUINA_INFERIOR_DERECHA;
 	cout << "\n";
 }
@@ -94,34 +109,27 @@ segunda línea se coloca el coche.De esta forma la visualización es más repres
 además que cada línea empieza y acaba con ǁ.El siguiente dibujo muestra el carril del archivo
 “carriles.txt”, donde el coche está en la posición inicial.*/
 
-	for (int s = 0; s < 3; s++) {
+	/*for (int s = 0; s < 2; s++) {
 		cout << CHAR_LINEA_VERTICAL;
 		switch (s)
 		{
-		case 0: for (int i = 2; i < LONG_CARRETERA; i++) cout << i;
+		case 0: for (int i = 0; i < LONG_CARRETERA - 2; i++) cout << i;
 			break;
 
 		case 1:
-			for (int i = 2; i < LONG_CARRETERA; i++) {
-				if (posCoche == carretera[i]) cout << CHAR_COCHE;
-
+			for (int i = 0; i < LONG_CARRETERA - 2; i++) {
+				if (carretera[i] == 0) cout << CHAR_NORMAL;
 				else {
-					switch (carretera[i])
-					{
-					case  1:  cout << CHAR_CLAVO;
-						break;
-
-					case 2: cout << CHAR_SORPRESA;
-						break;
-
-					default:cout << CHAR_NORMAL;
-						break;
-					};
+					if (carretera[i] == 1) cout << CHAR_CLAVO;
+					else  cout << CHAR_SORPRESA;
 				}
 			}
+		
 			break;
+
+
 		case 2:
-			for (int i = 2; i < LONG_CARRETERA; i++)
+			for (int i = 0; i < LONG_CARRETERA-2; i++)
 			{
 				if (posCoche == carretera[i]) cout << CHAR_COCHE;
 				else cout << CHAR_NORMAL;
@@ -130,14 +138,32 @@ además que cada línea empieza y acaba con ǁ.El siguiente dibujo muestra el ca
 		}
 		cout << CHAR_LINEA_VERTICAL;
 		cout << "\n";
+	};
+	*/
+	cout << CHAR_LINEA_VERTICAL;
+	for (int i = 0; i < LONG_CARRETERA ; i++) cout << i;
+	cout << CHAR_LINEA_VERTICAL << endl<<CHAR_LINEA_VERTICAL;
+	for (int i = 0; i < LONG_CARRETERA ; i++) {
+		if (carretera[i] == CLAVO) cout << CHAR_CLAVO;
+		else {
+			if (carretera[i] == SORPRESA) cout << CHAR_SORPRESA;
+			else if(carretera[i] == NORMAL) cout << CHAR_NORMAL;
+		}
 	}
+	cout << CHAR_LINEA_VERTICAL << endl << CHAR_LINEA_VERTICAL;
+	for (int i = 0; i < LONG_CARRETERA ; i++)
+	{
+		if (i == posCoche) cout << CHAR_COCHE;
+		else cout << CHAR_NORMAL;
+	}
+	cout << CHAR_LINEA_VERTICAL << endl;
 }
 
 
 bool esSorpresa(const tCarretera carretera, int posCoche) { /*devuelve true sí y sólo sí la posición posCoche es una posición sorpresa en la carretera.*/
 	bool sorpresa = false;
-		if (carretera[posCoche] == SORPRESA) sorpresa = true;
-		return sorpresa;
+	if (carretera[posCoche] == SORPRESA) sorpresa = true;
+	return sorpresa;
 }
 
 
@@ -166,18 +192,18 @@ int buscaSiguientePosSorpresa(const tCarretera carretera, int posCoche, int& n) 
 	int siguientesorpresa = buscaSorpresa(carretera, posCoche, n);
 	return siguientesorpresa;
 }
-	int buscaSorpresa(const tCarretera carretera, int desde, const int incr){/*que busca una posición sorpresa en la carretera, empezando desde la posición
-		desde, en la dirección marcada por incr.El parámetro incr será 1 o - 1. El valor 1 indica avance
-		y - 1 retroceso.Tanto si se avanza como si se retrocede, asegúrate de respetar las dimensiones de
-		la carretera*/
-		int possorpresa = -1; // si es igual a -1 no hay sorpresa
-		while (desde < LONG_CARRETERA && desde > 0)
-		{
-			if (esSorpresa(carretera, desde)) possorpresa = desde;
-			desde += incr;
-		}
-		return possorpresa;
+int buscaSorpresa(const tCarretera carretera, int desde, const int incr) {/*que busca una posición sorpresa en la carretera, empezando desde la posición
+	desde, en la dirección marcada por incr.El parámetro incr será 1 o - 1. El valor 1 indica avance
+	y - 1 retroceso.Tanto si se avanza como si se retrocede, asegúrate de respetar las dimensiones de
+	la carretera*/
+	int possorpresa = -1; // si es igual a -1 no hay sorpresa
+	while (desde < LONG_CARRETERA && desde > 0)
+	{
+		if (esSorpresa(carretera, desde)) possorpresa = desde;
+		desde += incr;
 	}
+	return possorpresa;
+}
 
 
 int avanza(int posCoche) { /* dada la posición actual del coche posCoche, devuelve la nueva
@@ -187,27 +213,29 @@ int avanza(int posCoche) { /* dada la posición actual del coche posCoche, devue
 		avanzar lo introduce el usuario, de forma que, si al calcular la nueva posición del coche nos sale un
 		valor negativo, entonces se devuelve 0. En ambos modos, si al avanzar el coche sobrepasa la meta,
 		se devuelve como posición del coche LONG_CARRETERA*/
-		int ncasillas;
-		if (DEBUG)
-		{
-			cout << "Por favor introduzca el numero de pasos que desea avanzar o retroceder";
-			cin >> ncasillas;
-			ncasillas += posCoche;
-			if (ncasillas < 0) ncasillas = 0;
-		}
-		else {
-			srand(time(NULL));
-			cout << "Por favor presione enter para continuar";
-
-			ncasillas = posCoche + rand() % 1 + MAX_PASOS;
-		}
-		if (ncasillas > LONG_CARRETERA) ncasillas = LONG_CARRETERA;
-		return ncasillas;
+	int ncasillas;
+	if (DEBUG)
+	{
+		cout << "Por favor introduzca el numero de pasos que desea avanzar o retroceder";
+		cin >> ncasillas;
+		ncasillas += posCoche;
+		if (ncasillas < 0) ncasillas = 0;
 	}
+	else {
+		srand(time(NULL));
+		cout << "Por favor presione enter para continuar";
+
+		ncasillas = posCoche + rand() % 1 + MAX_PASOS;
+		cout << "Has avanzado " << ncasillas;
+	}
+	if (ncasillas > LONG_CARRETERA) ncasillas = LONG_CARRETERA;
+	return ncasillas;
+}
 
 
-bool haLlegado(int posCoche) {return (posCoche >= LONG_CARRETERA);
-	}/*devuelve true sí y sólo sí posCoche es mayor o igual aLONG_CARRETERA.*/
+bool haLlegado(int posCoche) {
+	return (posCoche >= LONG_CARRETERA);
+}/*devuelve true sí y sólo sí posCoche es mayor o igual aLONG_CARRETERA.*/
 
 
 void avanzaCarril(const tCarretera carretera, int& posCoche, int& tiempoParado) { /*Dibuja la carretera.
@@ -218,37 +246,39 @@ void avanzaCarril(const tCarretera carretera, int& posCoche, int& tiempoParado) 
 		parado al valor de la constante TIEMPO_PARADO.Hay que informar al usuario de lo que va
 		ocurriendo.Mira los ejemplos que aparecen al final.*/
 
-		dibujaCarretera(carretera, posCoche);
-		if (tiempoParado != 0) cout << "Tienes que esperar " << tiempoParado << " turnos";
-		else {
-			cout << "Presiona enter para continuar";
-			cin.get();
-			posCoche = avanza(posCoche);
+	dibujaCarretera(carretera, posCoche);
+	if (tiempoParado > 0) cout << "Tienes que esperar " << tiempoParado << " turnos";
+	else {
+		cout << "Presiona enter para continuar";
+		cin.ignore();
+		cin.get();
+		posCoche = avanza(posCoche);
+		
 
+		if (posCoche == LONG_CARRETERA) {
+			dibujaCarretera(carretera, posCoche);
+			cout << "HAS GANADO" << endl;
 
-			if (posCoche == LONG_CARRETERA) {
-				dibujaCarretera(carretera, posCoche);
-				cout << "HAS GANADO" << endl;
-			}
-			else if (esSorpresa(carretera, posCoche))
-			{
-				int sentido;
-				cout << "HAS CAIDO EN UNA SORPRESA, PASAS A LA SIGUIENTE SORPRESA" << endl;
-				posCoche = buscaSiguientePosSorpresa(carretera, posCoche, sentido);
-
-				if (sentido == 1) cout << "Avanzando a la siguiente sorpresa" << endl;
-				else cout << "Retrocediendo a la anterior sorpresa" << endl;
-
-				dibujaCarretera(carretera, posCoche);
-			}
-			else {
-				cout << "Has pinchado, estarás " << TIEMPO_PARADO << " sin moverte";
-				tiempoParado = TIEMPO_PARADO;
-			}
 		}
+		else if (esSorpresa(carretera, posCoche))
+		{
+			int sentido;
+			cout << "HAS CAIDO EN UNA SORPRESA, PASAS A LA SIGUIENTE SORPRESA" << endl;
+			posCoche = buscaSiguientePosSorpresa(carretera, posCoche, sentido);
 
-			
+			if (sentido == 1) cout << "Avanzando a la siguiente sorpresa" << endl;
+			else cout << "Retrocediendo a la anterior sorpresa" << endl;
+
+			dibujaCarretera(carretera, posCoche);
+		}
+		else if (esClavo(carretera, posCoche)){
+			cout << "Has pinchado, estarás " << TIEMPO_PARADO << " sin moverte";
+			tiempoParado = TIEMPO_PARADO;
+		}
 	}
+
+
+}
 
 
 void iniciaCoche(int& posCoche, int& tiempoParado) /*pone a valor 0 ambos parámetros.*/
@@ -277,9 +307,9 @@ se pregunta al usuario si desea ejecutar una nueva simulación. En caso afirmati
 otro caso el programa termina.*/
 {
 	tCarretera carretera;
-	
-	while(!cargaCarretera(carretera)) cout << "Nombre del archivo no reconocido";
+
+	while (!cargaCarretera(carretera)) cout << "Nombre del archivo no reconocido" << endl;
 
 	simulaCarrera(carretera);
-	
+
 }
