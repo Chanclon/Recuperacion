@@ -147,7 +147,7 @@ además que cada línea empieza y acaba con ǁ.El siguiente dibujo muestra el ca
 		if (carretera[i] == CLAVO) cout << CHAR_CLAVO;
 		else {
 			if (carretera[i] == SORPRESA) cout << CHAR_SORPRESA;
-			else if(carretera[i] == NORMAL) cout << CHAR_NORMAL;
+			else cout << CHAR_NORMAL;
 		}
 	}
 	cout << CHAR_LINEA_VERTICAL << endl << CHAR_LINEA_VERTICAL;
